@@ -42,7 +42,16 @@ class ColorToken {
   /// Whether the text is struck out.
   bool get strikeout => styles.contains(TermStyle.strikeout);
 
-  /// Whether the text is an xterm256 color code. Otherwise, it is a standard color code.
+  /// Whether the text is reset at the end.
+  bool get reset => styles.contains(TermStyle.reset);
+
+  /// Whether the text has a foreground color.
+  bool get hasFgColor => fgColor != 0;
+
+  /// Whether the text has a background color.
+  bool get hasBgColor => bgColor != 0;
+
+  /// Whether the text is an xterm256 color code. Otherwise, it is an ANSI color code.
   bool xterm256;
 
   /// The styles applied to the text.
@@ -58,6 +67,10 @@ class ColorToken {
 
   /// Create an empty token.
   factory ColorToken.empty() => ColorToken(text: '', fgColor: 0, bgColor: 0);
+
+  /// Create an empty token with a reset style.
+  factory ColorToken.emptyReset() =>
+      ColorToken(text: '', fgColor: 0, bgColor: 0, styles: {TermStyle.reset});
 
   /// Create a token with default color and the given text.
   factory ColorToken.defaultColor(String text) =>
@@ -88,19 +101,28 @@ class ColorToken {
         colorCodes += ';$bgColor';
       }
     }
-    final styleCodes = styles.isNotEmpty ? styles.map((s) => Consts.codeMap[s]).join(';') : '';
+    final nonResetStyles = styles.where((x) => x != TermStyle.reset).toList();
+    final styleCodes = nonResetStyles.isNotEmpty
+        ? nonResetStyles.map((s) => Consts.codeMap[s]).join(';')
+        : '';
 
-    final tokens = _tokenString([colorCodes, styleCodes].where((s) => s.isNotEmpty).join(';'));
-    final reset = _tokenString(Consts.resetByte.toString());
+    final tokens = _tokenString(
+        [colorCodes, styleCodes].where((s) => s.isNotEmpty).join(';'));
+    final reset = this.reset ? _tokenString(Consts.resetByte.toString()) : '';
 
     return '$tokens$text$reset';
   }
 
   @override
-  String toString() {
-    final x = xterm256 ? 'x' : '';
-    return 'ColoredText("$text", $fgColor:$bgColor, $x, ${styles.map((s) => s.name)})';
-  }
+  String toString() => 'ColoredText(${debugProperties().join(', ')})';
+
+  List<String> debugProperties() => [
+        'text: "${_debugString(text)}"',
+        'fgColor: $fgColor',
+        'bgColor: $bgColor',
+        'xterm256: $xterm256',
+        'styles: ${styles.map((s) => s.name)}',
+      ];
 
   String _tokenString(String content) => '\x1B[${content}m';
 
@@ -114,21 +136,21 @@ class ColorToken {
           runtimeType == other.runtimeType &&
           text == other.text &&
           fgColor == other.fgColor &&
-          bgColor == other.bgColor;
+          bgColor == other.bgColor &&
+          styles.length == other.styles.length &&
+          styles.containsAll(other.styles);
 
   /// Set the style based on the given code.
   void setStyle(int code) {
-    if (code == Consts.resetByte) {
-      styles.clear();
-    } else {
-      for (final style in Consts.codeMap.entries) {
-        if (code == style.value) {
-          styles.add(style.key);
-          return;
-        }
+    for (final style in Consts.codeMap.entries) {
+      if (code == style.value) {
+        styles.add(style.key);
+        return;
       }
     }
   }
+
+  _debugString(String string) => string.replaceAll('\x1B', '\\x1B');
 }
 
 /// An enum that represents the different types of string tokens that can be read.
@@ -203,4 +225,3 @@ class StringTokenValue {
   String toString() =>
       token != StringToken.esc ? '${token.name}($raw)' : token.name;
 }
-

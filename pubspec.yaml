@@ -1,6 +1,6 @@
 name: terminal_color_parser
 description: Parse terminal colors for displaying in other formats. Supports ANSI and xterm256.
-version: 0.5.0
+version: 0.6.0
 repository: https://github.com/chenasraf/terminal_color_parser_dart
 
 environment:
@@ -9,3 +9,7 @@ environment:
 dev_dependencies:
   lints: ^2.0.0
   test: ^1.21.0
+
+script_runner:
+  scripts:
+    - publish: dart format .; dart pub publish

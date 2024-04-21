@@ -66,6 +66,12 @@ class ColorParser implements IReader<StringTokenValue> {
             token.fgColor = fg;
             token.bgColor = bg;
             token.text = _consumeUntil(Consts.esc);
+            final next = _peekUntil('m');
+            if (next == '\x1B[0') {
+              _consumeUntil('m');
+              reader.read();
+              token.setStyle(Consts.resetByte);
+            }
             return token;
           }
           if (next == null) {
@@ -101,6 +107,31 @@ class ColorParser implements IReader<StringTokenValue> {
     return result;
   }
 
+  String _peekUntil(String char) {
+    String? next = reader.peek();
+    if (next == null) {
+      return '';
+    }
+    var result = '';
+    final prevPos = reader.index;
+    while (!reader.isDone) {
+      if (next == char) {
+        break;
+      }
+      next = reader.peek();
+      if (next == null) {
+        break;
+      }
+      result += reader.read()!;
+      next = reader.peek();
+    }
+    reader.setPosition(prevPos);
+    return result;
+  }
+
+  // ignore: unused_element
+  _debugString(String string) => string.replaceAll('\x1B', '\\x1B');
+
   @override
   int index = 0;
 
@@ -119,4 +150,3 @@ class ColorParser implements IReader<StringTokenValue> {
   @override
   setPosition(int position) => index = position;
 }
-

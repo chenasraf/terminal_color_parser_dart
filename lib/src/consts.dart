@@ -99,4 +99,3 @@ enum TermStyle {
   /// Change font.
   font,
 }
-

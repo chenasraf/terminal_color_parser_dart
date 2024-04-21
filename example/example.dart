@@ -47,4 +47,3 @@ void dbg(int i, ColorToken token) {
   print('  - Underline: ${token.underline}');
   print('  - Styles: ${token.styles}');
 }
-

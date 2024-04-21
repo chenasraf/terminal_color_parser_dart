@@ -15,10 +15,11 @@ void main() {
       final output = ColorParser(input).parse();
       expect(output, [
         ColorToken(
-            text: 'You are standing in a small clearing.',
-            fgColor: 32,
-            bgColor: 0),
-        ColorToken.empty(),
+          text: 'You are standing in a small clearing.',
+          fgColor: 32,
+          bgColor: 0,
+          styles: {TermStyle.reset},
+        ),
       ]);
     });
 
@@ -27,10 +28,11 @@ void main() {
       final output = ColorParser(input).parse();
       expect(output, [
         ColorToken(
-            text: 'You are standing in a small clearing.',
-            fgColor: 0,
-            bgColor: 0),
-        ColorToken.empty(),
+          text: 'You are standing in a small clearing.',
+          fgColor: 0,
+          bgColor: 0,
+          styles: {},
+        ),
       ]);
     });
 
@@ -41,4 +43,3 @@ void main() {
     });
   });
 }
-

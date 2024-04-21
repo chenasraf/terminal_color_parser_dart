@@ -1,6 +1,7 @@
 /// An interface for reading data of type T.
 abstract class IReader<T> {
-  /// Reads the next element of type T from the data source.
+  /// Reads the next element of type T from the data source, and advances the position by one
+  /// element.
   /// Returns the element read, or null if the end of the data source is reached.
   T? read();
 
