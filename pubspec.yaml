@@ -1,6 +1,6 @@
 name: terminal_color_parser
 description: Parse terminal colors for displaying in other formats. Supports ANSI and xterm256.
-version: 0.6.0
+version: 0.7.0
 repository: https://github.com/chenasraf/terminal_color_parser_dart
 
 environment:

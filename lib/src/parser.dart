@@ -21,70 +21,79 @@ class ColorParser implements IReader<StringTokenValue> {
   List<ColorToken> parse() {
     final lexed = <ColorToken>[];
     while (!reader.isDone) {
-      final token = reader.read()!;
-      var cur = _getToken(token);
-      lexed.add(cur);
+      var cur = _getToken();
+      if (cur != null) {
+        lexed.add(cur);
+      }
     }
     return lexed;
   }
 
-  ColorToken _getToken(String char) {
-    final token = ColorToken.empty();
+  ColorToken? _getToken() {
+    var token = ColorToken.empty();
+    final char = reader.peek();
+    // print('');
+    // print('char: ${_debugString(char ?? '<null>')}');
+    // print('');
+
     switch (char) {
+      case null:
+        return null;
       case Consts.esc:
-        String? next;
-        // keep reading until we hit the end of the escape sequence or the end of the string
-        while (!reader.isDone) {
-          next = reader.peek();
-          if (next == Consts.esc) {
-            break;
-          }
-          reader.read();
-          if (next == '[') {
-            final color = _consumeUntil('m');
-            reader.read();
-            final colors = color.split(';');
-            final first = int.tryParse(colors[0]) ?? 0;
-            final second = colors.length > 1 ? int.tryParse(colors[1]) ?? 0 : 0;
-            final third = colors.length > 2 ? int.tryParse(colors[2]) ?? 0 : 0;
-            int fg;
-            int bg;
-            if (first < 30) {
-              token.setStyle(first);
-              fg = second;
-              bg = third;
-            } else {
-              if (first == 38 && second == 5) {
-                token.xterm256 = true;
-                fg = third;
-                bg = 0;
-              } else {
-                fg = first;
-                bg = second;
-              }
-            }
-            token.fgColor = fg;
-            token.bgColor = bg;
-            token.text = _consumeUntil(Consts.esc);
-            final next = _peekUntil('m');
-            if (next == '\x1B[0') {
-              _consumeUntil('m');
-              reader.read();
-              token.setStyle(Consts.resetByte);
-            }
-            return token;
-          }
-          if (next == null) {
-            break;
-          }
-          token.text += next;
-        }
-        return token;
-      default:
-        token.text += char;
-        token.text += _consumeUntil(Consts.esc);
-        return token;
+        return _consumeEscSequence(token);
     }
+
+    return _consumeText(token);
+  }
+
+  ColorToken _consumeEscSequence(ColorToken token) {
+    // print('Consuming escape sequence for $token');
+    reader.read();
+    var next = reader.read();
+    switch (next) {
+      case '[':
+        token = _consumeStyleToken(token);
+    }
+    return _consumeText(token);
+  }
+
+  ColorToken _consumeStyleToken(ColorToken token) {
+    // print('Consuming style token for $token');
+    final color = _consumeUntil('m');
+    reader.read();
+    final colors = color.split(';');
+    final first = int.parse(colors[0]);
+    final second = colors.length > 1 ? int.tryParse(colors[1]) ?? 0 : 0;
+    final third = colors.length > 2 ? int.tryParse(colors[2]) ?? 0 : 0;
+    // print('first: $first, second: $second, third: $third');
+    int fg;
+    int bg;
+    if (first < 30) {
+      token.setStyle(first);
+      fg = second;
+      bg = third;
+    } else {
+      if (first == 38 && second == 5) {
+        token.xterm256 = true;
+        fg = third;
+        bg = 0;
+      } else {
+        fg = first;
+        bg = second;
+      }
+    }
+    token.fgColor = token.hasFgColor ? token.fgColor : fg;
+    token.bgColor = token.hasBgColor ? token.bgColor : bg;
+    if (reader.peek() == Consts.esc) {
+      return _consumeEscSequence(token);
+    }
+    return token;
+  }
+
+  ColorToken _consumeText(ColorToken token) {
+    // print('Consuming text for $token');
+    token.text += _consumeUntil(Consts.esc);
+    return token;
   }
 
   String _consumeUntil(String char) {
@@ -107,6 +116,7 @@ class ColorParser implements IReader<StringTokenValue> {
     return result;
   }
 
+  // ignore: unused_element
   String _peekUntil(String char) {
     String? next = reader.peek();
     if (next == null) {

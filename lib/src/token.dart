@@ -101,16 +101,15 @@ class ColorToken {
         colorCodes += ';$bgColor';
       }
     }
-    final nonResetStyles = styles.where((x) => x != TermStyle.reset).toList();
-    final styleCodes = nonResetStyles.isNotEmpty
-        ? nonResetStyles.map((s) => Consts.codeMap[s]).join(';')
-        : '';
+    // final nonResetStyles = styles.where((x) => x != TermStyle.reset).toList();
+    final styleCodes =
+        styles.isNotEmpty ? styles.map((s) => Consts.codeMap[s]).join(';') : '';
 
     final tokens = _tokenString(
         [colorCodes, styleCodes].where((s) => s.isNotEmpty).join(';'));
-    final reset = this.reset ? _tokenString(Consts.resetByte.toString()) : '';
+    // final reset = this.reset ? _tokenString(Consts.resetByte.toString()) : '';
 
-    return '$tokens$text$reset';
+    return '$tokens$text';
   }
 
   @override
