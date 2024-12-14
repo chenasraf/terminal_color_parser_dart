@@ -4,7 +4,7 @@ version: 0.7.0
 repository: https://github.com/chenasraf/terminal_color_parser_dart
 
 environment:
-  sdk: ^3.1.2
+  sdk: ^2.15
 
 dev_dependencies:
   lints: ^2.0.0
