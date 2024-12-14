@@ -57,14 +57,18 @@ class ColorParser implements IReader<StringTokenValue> {
     return _consumeText(token);
   }
 
-  ColorToken _consumeStyleToken(ColorToken token) {
+ ColorToken _consumeStyleToken(ColorToken token) {
     // print('Consuming style token for $token');
     final color = _consumeUntil('m');
     reader.read();
-    final colors = color.split(';');
-    final first = int.parse(colors[0]);
-    final second = colors.length > 1 ? int.tryParse(colors[1]) ?? 0 : 0;
-    final third = colors.length > 2 ? int.tryParse(colors[2]) ?? 0 : 0;
+    int first, second, third = 0;
+
+    if (color.contains(';')) { //ignore codes like [40m for now
+      final colors = color.split(';');
+      first = int.parse(colors[0]);
+      second = colors.length > 1 ? int.tryParse(colors[1]) ?? 0 : 0;
+      third = colors.length > 2 ? int.tryParse(colors[2]) ?? 0 : 0;
+
     // print('first: $first, second: $second, third: $third');
     int fg;
     int bg;
@@ -87,6 +91,7 @@ class ColorParser implements IReader<StringTokenValue> {
     if (reader.peek() == Consts.esc) {
       return _consumeEscSequence(token);
     }
+  }
     return token;
   }
 
