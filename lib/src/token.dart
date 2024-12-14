@@ -11,9 +11,11 @@ class ColorToken {
 
   /// The foreground color code.
   int fgColor;
+  String rgbFgColor;
 
   /// The background color code.
   int bgColor;
+  String rgbBgColor;
 
   /// Whether the text is bold.
   bool get bold => styles.contains(TermStyle.bold);
@@ -54,6 +56,12 @@ class ColorToken {
   /// Whether the text is an xterm256 color code. Otherwise, it is an ANSI color code.
   bool xterm256;
 
+  /// Whether the text is using r;g;b for fg or bg
+  bool rgbFg;
+  bool rgbBg;
+
+
+
   /// The styles applied to the text.
   late Set<TermStyle> styles;
 
@@ -62,6 +70,10 @@ class ColorToken {
     required this.fgColor,
     required this.bgColor,
     this.xterm256 = false,
+    this.rgbFg = false,
+    this.rgbBg = false,
+    this.rgbFgColor = "",
+    this.rgbBgColor = "",
     Set<TermStyle>? styles,
   }) : styles = styles ?? {};
 
@@ -95,7 +107,14 @@ class ColorToken {
       if (bgColor != 0) {
         colorCodes += ';48;5;$bgColor';
       }
-    } else {
+    } else if (rgbFg || rgbBg) {
+      if (rgbFgColor != "") {
+        colorCodes = '38;2;$rgbFgColor';
+      }
+      if (rgbBgColor != "") {
+        colorCodes += ';48;2;$rgbBgColor';
+      }
+    } else{
       colorCodes = fgColor == 0 ? '' : '$fgColor';
       if (bgColor != 0) {
         colorCodes += ';$bgColor';
@@ -103,7 +122,7 @@ class ColorToken {
     }
     // final nonResetStyles = styles.where((x) => x != TermStyle.reset).toList();
     final styleCodes =
-        styles.isNotEmpty ? styles.map((s) => Consts.codeMap[s]).join(';') : '';
+    styles.isNotEmpty ? styles.map((s) => Consts.codeMap[s]).join(';') : '';
 
     final tokens = _tokenString(
         [colorCodes, styleCodes].where((s) => s.isNotEmpty).join(';'));
@@ -112,17 +131,21 @@ class ColorToken {
     return '$tokens$text';
   }
 
+
+
   @override
   String toString() => 'ColoredText(${debugProperties().join(', ')})';
 
   /// Returns a list of debug properties.
   List<String> debugProperties() => [
-        'text: "${_debugString(text)}"',
-        'fgColor: $fgColor',
-        'bgColor: $bgColor',
-        'xterm256: $xterm256',
-        'styles: ${styles.map((s) => s.name)}',
-      ];
+    'text: "${_debugString(text)}"',
+    'fgColor: $fgColor',
+    'bgColor: $bgColor',
+    'xterm256: $xterm256',
+    'rgbFG: $rgbFgColor',
+    'rgbBG: $rgbBgColor',
+    'styles: ${styles.map((s) => s.name)}',
+  ];
 
   String _tokenString(String content) => '\x1B[${content}m';
 
@@ -132,13 +155,13 @@ class ColorToken {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is ColorToken &&
-          runtimeType == other.runtimeType &&
-          text == other.text &&
-          fgColor == other.fgColor &&
-          bgColor == other.bgColor &&
-          styles.length == other.styles.length &&
-          styles.containsAll(other.styles);
+          other is ColorToken &&
+              runtimeType == other.runtimeType &&
+              text == other.text &&
+              fgColor == other.fgColor &&
+              bgColor == other.bgColor &&
+              styles.length == other.styles.length &&
+              styles.containsAll(other.styles);
 
   /// Set the style based on the given code.
   void setStyle(int code) {
@@ -199,7 +222,7 @@ class StringTokenValue {
 
   /// A token representing a color separator character.
   static const colorSeparator =
-      StringTokenValue(StringToken.colorSeparator, ';');
+  StringTokenValue(StringToken.colorSeparator, ';');
 
   /// A token representing a color terminator character.
   static const colorTerm = StringTokenValue(StringToken.colorTerm, 'm');
@@ -216,10 +239,10 @@ class StringTokenValue {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is StringTokenValue &&
-          runtimeType == other.runtimeType &&
-          token == other.token &&
-          raw == other.raw;
+          other is StringTokenValue &&
+              runtimeType == other.runtimeType &&
+              token == other.token &&
+              raw == other.raw;
 
   @override
   String toString() =>
