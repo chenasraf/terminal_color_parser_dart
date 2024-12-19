@@ -122,7 +122,7 @@ class ColorToken {
     }
     // final nonResetStyles = styles.where((x) => x != TermStyle.reset).toList();
     final styleCodes =
-        styles.isNotEmpty ? styles.map((s) => Consts.codeMap[s]).join(';') : '';
+    styles.isNotEmpty ? styles.map((s) => Consts.codeMap[s]).join(';') : '';
 
     final tokens = _tokenString(
         [colorCodes, styleCodes].where((s) => s.isNotEmpty).join(';'));
@@ -137,12 +137,12 @@ class ColorToken {
   String toString() => 'ColoredText(${debugProperties().join(', ')})';
 
   List<String> debugProperties() => [
-        'text: "${_debugString(text)}"',
-        'fgColor: $fgColor',
-        'bgColor: $bgColor',
-        'xterm256: $xterm256',
-        'styles: ${styles.map((s) => s.name)}',
-      ];
+    'text: "${_debugString(text)}"',
+    'fgColor: $fgColor',
+    'bgColor: $bgColor',
+    'xterm256: $xterm256',
+    'styles: ${styles.map((s) => s.name)}',
+  ];
 
   String _tokenString(String content) => '\x1B[${content}m';
 
@@ -152,13 +152,13 @@ class ColorToken {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is ColorToken &&
-          runtimeType == other.runtimeType &&
-          text == other.text &&
-          fgColor == other.fgColor &&
-          bgColor == other.bgColor &&
-          styles.length == other.styles.length &&
-          styles.containsAll(other.styles);
+          other is ColorToken &&
+              runtimeType == other.runtimeType &&
+              text == other.text &&
+              fgColor == other.fgColor &&
+              bgColor == other.bgColor &&
+              styles.length == other.styles.length &&
+              styles.containsAll(other.styles);
 
   /// Set the style based on the given code.
   void setStyle(int code) {
@@ -219,7 +219,7 @@ class StringTokenValue {
 
   /// A token representing a color separator character.
   static const colorSeparator =
-      StringTokenValue(StringToken.colorSeparator, ';');
+  StringTokenValue(StringToken.colorSeparator, ';');
 
   /// A token representing a color terminator character.
   static const colorTerm = StringTokenValue(StringToken.colorTerm, 'm');
@@ -236,10 +236,10 @@ class StringTokenValue {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is StringTokenValue &&
-          runtimeType == other.runtimeType &&
-          token == other.token &&
-          raw == other.raw;
+          other is StringTokenValue &&
+              runtimeType == other.runtimeType &&
+              token == other.token &&
+              raw == other.raw;
 
   @override
   String toString() =>

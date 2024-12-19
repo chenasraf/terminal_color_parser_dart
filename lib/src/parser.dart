@@ -57,76 +57,30 @@ class ColorParser implements IReader<StringTokenValue> {
     return _consumeText(token);
   }
 
- ColorToken _consumeStyleToken(ColorToken token) {
+  ColorToken _consumeStyleToken(ColorToken token) {
     // print('Consuming style token for $token');
     final color = _consumeUntil('m');
     reader.read();
-    // int fg = 0;
-    // int bg = 0;
 
     if (!color.contains(';')){
       //single number color [30-37] / [40-47]
       // or [90-97] / [100-107], fg / bg
-      int colVal = int.parse(color);
-      if((30 < colVal) && (colVal < 37) || (90 < colVal) && (colVal < 97)) {
-        token.fgColor = colVal ;
-      }
-      if((40 < colVal) && (colVal < 47) || (100 < colVal) && (colVal < 107)) {
-        token.bgColor = colVal ;
+      // e.g. ^[40m
+      // or just style ? e.g. ^[1m
+      int colorValue = int.parse(color);
+      if((30 <= colorValue) && (colorValue <= 37) || (90 <= colorValue) && (colorValue <= 97)) {
+        token.fgColor = colorValue ;
+      } else if((40 <= colorValue) && (colorValue <= 47) || (100 <= colorValue) && (colorValue <= 107)) {
+        token.bgColor = colorValue ;
+      } else if (colorValue <30){ // style ?
+        token.setStyle(colorValue);
       }
     }
+    // things like  ^[1;38;2;114;150;50;48;2;125;70;22m TEXT ^[0m
     else { // multi number madness, trying recursive parser ?
       final colors = color.split(';');
       processTokenStyle(colors, token); //really hope this works by reference
-    //   if (colors.length < 4) { // basic and xterm
-    //     first = int.parse(colors[0]);
-    //     second = colors.length > 1 ? int.tryParse(colors[1]) ?? 0 : 0;
-    //     third = colors.length > 2 ? int.tryParse(colors[2]) ?? 0 : 0;
-    //
-    //     if (first < 30) { // bold, underline, etc?
-    //       token.setStyle(first);
-    //       fg = second;
-    //       bg = third;
-    //     } else {
-    //       if (first == 38 && second == 5) {
-    //         token.xterm256 = true;
-    //         fg = third;
-    //         // bg = 0;
-    //       } else if (first == 48 && second == 5) {
-    //         token.xterm256 = true;
-    //         bg = third;
-    //         // bg = 0;
-    //       } else {
-    //         fg = first;
-    //         bg = second;
-    //       }
-    //     }
-    // }
-    //   else{ //truecolor, rgb
-    //     first = int.parse(colors[0]);
-    //     second = colors.length > 1 ? int.tryParse(colors[1]) ?? 0 : 0;
-    //     third = colors.length > 2 ? int.tryParse(colors[2]) ?? 0 : 0;
-    //     int fourth = colors.length > 3 ? int.tryParse(colors[3]) ?? 0 : 0;
-    //     int fifth = colors.length > 4 ? int.tryParse(colors[4]) ?? 0 : 0;
-    //     int sixth = colors.length > 5 ? int.tryParse(colors[5]) ?? 0 : 0;
-    //     if (first == 38 && second == 2) {
-    //       //Truecolor (24-bit RGB)
-    //       fg = third; // TODO: R,G,B [ third , fourth , fifth ]
-    //       // bg = 0;
-    //     } else if (first == 48 && second == 2) {
-    //       //token.xterm256 = true;
-    //       bg = third; // TODO: R,G,B [ third , fourth , fifth ]
-    //       // bg = 0;
-    //     }
-    //     else{ //a 16-color code for FG + rgb for BG?
-    //
-    //     }
-    //
-    //
-    //   }
-  }
-    // token.fgColor = token.hasFgColor ? token.fgColor : fg;
-    // token.bgColor = token.hasBgColor ? token.bgColor : bg;
+    }
     if (reader.peek() == Consts.esc) {
       return _consumeEscSequence(token);
     }
@@ -188,49 +142,54 @@ class ColorParser implements IReader<StringTokenValue> {
       if (first < 30) { // bold, underline, etc?
         token.setStyle(first);
         colors.removeAt(0);
-      } else {
-        if((30 < first) && (first < 37) || (90 < first) && (first < 97)) {
+      } else if((30 <= first) && (first <= 37) || (90 <= first) && (first <= 97) ||
+          (40 <= first) && (first <= 47) || (100 <= first) && (first <= 107)){
+        if((30 <= first) && (first <= 37) || (90 <= first) && (first <= 97)) {
           token.fgColor = first ;
           colors.removeAt(0);
-        }
-        if((40 < first) && (first < 47) || (100 < first) && (first < 107)) {
-          token.bgColor = first ;
+        }else if((40 <= first) && (first <= 47) || (100 <= first) && (first <= 107)) {
+          token.bgColor = first;
           colors.removeAt(0);
-        }else {
-          int second = int.parse(colors[1]);
-          if (first == 38 && second == 5) {
-            token.xterm256 = true;
-            int third = int.parse(colors[2]);
-            token.fgColor = third;
-            colors.removeRange(0, 2);
-            // bg = 0;
-          } else if (first == 48 && second == 5) {
-            token.xterm256 = true;
-            int third = int.parse(colors[2]);
-            token.bgColor = third;
-            colors.removeRange(0, 2);
-            // bg = 0;
-          } else {
-            if (first == 38 && second == 2) { //rgb
-              String red = colors[2];
-              String green = colors[3];
-              String blue = colors[4];
-              token.rgbFg = true;
-              token.rgbFgColor = "$red;$green;$blue";
-              colors.removeRange(0, 4);
-            } else if (first == 48 && second == 2) { //rgb
-              String red = colors[2];
-              String green = colors[3];
-              String blue = colors[4];
-              token.rgbBg = true;
-              token.rgbBgColor = "$red;$green;$blue";
-              colors.removeRange(0, 4);
-            }
+        }
+      }else {
+        int second = int.parse(colors[1]);
+        if (first == 38 && second == 5) {
+          token.xterm256 = true;
+          int third = int.parse(colors[2]);
+          token.fgColor = third;
+          colors.removeRange(0, 3);
+          // bg = 0;
+        } else if (first == 48 && second == 5) {
+          token.xterm256 = true;
+          int third = int.parse(colors[2]);
+          token.bgColor = third;
+          colors.removeRange(0, 3);
+          // bg = 0;
+        } else  {
+          if (first == 38 && second == 2) { //rgb
+            String red = colors[2];
+            String green = colors[3];
+            String blue = colors[4];
+            token.rgbFg = true;
+            token.rgbFgColor = "$red;$green;$blue";
+            colors.removeRange(0, 5);
+          } else if (first == 48 && second == 2) { //rgb
+            String red = colors[2];
+            String green = colors[3];
+            String blue = colors[4];
+            token.rgbBg = true;
+            token.rgbBgColor = "$red;$green;$blue";
+            colors.removeRange(0, 5);
+          }
+          else {
+            return;
           }
         }
       }
       //pass the rest of the color codes, hope for the best
-      processTokenStyle(colors, token); //hoping these go by reference
+      if(colors.isNotEmpty) {
+        processTokenStyle(colors, token); // really really hoping these go by reference
+      }
     }
   }
 
