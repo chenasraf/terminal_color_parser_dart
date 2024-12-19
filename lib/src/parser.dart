@@ -189,34 +189,43 @@ class ColorParser implements IReader<StringTokenValue> {
         token.setStyle(first);
         colors.removeAt(0);
       } else {
-        int second = int.parse(colors[1]);
-        if (first == 38 && second == 5) {
-          token.xterm256 = true;
-          int third = int.parse(colors[2]);
-          token.fgColor = third;
-          colors.removeRange(0, 2);
-          // bg = 0;
-        } else if (first == 48 && second == 5) {
-          token.xterm256 = true;
-          int third = int.parse(colors[2]);
-          token.bgColor = third;
-          colors.removeRange(0, 2);
-          // bg = 0;
-        } else {
-          if (first == 38 && second == 2) { //rgb
-            String red = colors[2];
-            String green = colors[3];
-            String blue = colors[4];
-            token.rgbFg = true;
-            token.rgbFgColor = "$red;$green;$blue";
-            colors.removeRange(0, 4);
-          } else if (first == 48 && second == 2) { //rgb
-            String red = colors[2];
-            String green = colors[3];
-            String blue = colors[4];
-            token.rgbBg = true;
-            token.rgbBgColor = "$red;$green;$blue";
-            colors.removeRange(0, 4);
+        if((30 < first) && (first < 37) || (90 < first) && (first < 97)) {
+          token.fgColor = first ;
+          colors.removeAt(0);
+        }
+        if((40 < first) && (first < 47) || (100 < first) && (first < 107)) {
+          token.bgColor = first ;
+          colors.removeAt(0);
+        }else {
+          int second = int.parse(colors[1]);
+          if (first == 38 && second == 5) {
+            token.xterm256 = true;
+            int third = int.parse(colors[2]);
+            token.fgColor = third;
+            colors.removeRange(0, 2);
+            // bg = 0;
+          } else if (first == 48 && second == 5) {
+            token.xterm256 = true;
+            int third = int.parse(colors[2]);
+            token.bgColor = third;
+            colors.removeRange(0, 2);
+            // bg = 0;
+          } else {
+            if (first == 38 && second == 2) { //rgb
+              String red = colors[2];
+              String green = colors[3];
+              String blue = colors[4];
+              token.rgbFg = true;
+              token.rgbFgColor = "$red;$green;$blue";
+              colors.removeRange(0, 4);
+            } else if (first == 48 && second == 2) { //rgb
+              String red = colors[2];
+              String green = colors[3];
+              String blue = colors[4];
+              token.rgbBg = true;
+              token.rgbBgColor = "$red;$green;$blue";
+              colors.removeRange(0, 4);
+            }
           }
         }
       }
