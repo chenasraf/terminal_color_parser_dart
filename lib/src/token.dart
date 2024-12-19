@@ -11,9 +11,11 @@ class ColorToken {
 
   /// The foreground color code.
   int fgColor;
+  String rgbFgColor;
 
   /// The background color code.
   int bgColor;
+  String rgbBgColor;
 
   /// Whether the text is bold.
   bool get bold => styles.contains(TermStyle.bold);
@@ -54,6 +56,12 @@ class ColorToken {
   /// Whether the text is an xterm256 color code. Otherwise, it is an ANSI color code.
   bool xterm256;
 
+  /// Whether the text is using r;g;b for fg or bg
+  bool rgbFg;
+  bool rgbBg;
+
+
+
   /// The styles applied to the text.
   late Set<TermStyle> styles;
 
@@ -62,6 +70,10 @@ class ColorToken {
     required this.fgColor,
     required this.bgColor,
     this.xterm256 = false,
+    this.rgbFg = false,
+    this.rgbBg = false,
+    this.rgbFgColor = "",
+    this.rgbBgColor = "",
     Set<TermStyle>? styles,
   }) : styles = styles ?? {};
 
@@ -95,7 +107,14 @@ class ColorToken {
       if (bgColor != 0) {
         colorCodes += ';48;5;$bgColor';
       }
-    } else {
+    } else if (rgbFg || rgbBg) {
+      if (rgbFgColor != "") {
+        colorCodes = '38;2;$rgbFgColor';
+      }
+      if (rgbBgColor != "") {
+        colorCodes += ';48;2;$rgbBgColor';
+      }
+    } else{
       colorCodes = fgColor == 0 ? '' : '$fgColor';
       if (bgColor != 0) {
         colorCodes += ';$bgColor';
@@ -111,6 +130,8 @@ class ColorToken {
 
     return '$tokens$text';
   }
+
+
 
   @override
   String toString() => 'ColoredText(${debugProperties().join(', ')})';
