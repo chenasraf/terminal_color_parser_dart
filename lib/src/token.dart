@@ -141,6 +141,8 @@ class ColorToken {
     'fgColor: $fgColor',
     'bgColor: $bgColor',
     'xterm256: $xterm256',
+    'rgbFG: $rgbFgColor',
+    'rgbBG: $rgbBgColor',
     'styles: ${styles.map((s) => s.name)}',
   ];
 

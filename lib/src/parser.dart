@@ -62,18 +62,33 @@ class ColorParser implements IReader<StringTokenValue> {
     final color = _consumeUntil('m');
     reader.read();
 
-    if (!color.contains(';')){
+    if (!color.contains(';')) {
       //single number color [30-37] / [40-47]
       // or [90-97] / [100-107], fg / bg
       // e.g. ^[40m
       // or just style ? e.g. ^[1m
-      int colorValue = int.parse(color);
-      if((30 <= colorValue) && (colorValue <= 37) || (90 <= colorValue) && (colorValue <= 97)) {
-        token.fgColor = colorValue ;
-      } else if((40 <= colorValue) && (colorValue <= 47) || (100 <= colorValue) && (colorValue <= 107)) {
-        token.bgColor = colorValue ;
-      } else if (colorValue <30){ // style ?
-        token.setStyle(colorValue);
+
+      // TODO: this seems to crash on ^[40m, don't understand exactly why
+      // doesn't seem to be the 40m, that one gets interpreted well (black bg)
+
+      int colorValue = -1;
+      try {
+        colorValue = int.parse(color);
+      } on FormatException {
+        // ignore, then??
+        // print("failing color= " + color);
+        // TODO: it keeps logging thousands of empty "failing colors" ?
+      }
+      if (colorValue > -1) { // init safely, ignore if nothing ?
+        if ((30 <= colorValue) && (colorValue <= 37) ||
+            (90 <= colorValue) && (colorValue <= 97)) {
+          token.fgColor = colorValue;
+        } else if ((40 <= colorValue) && (colorValue <= 47) ||
+            (100 <= colorValue) && (colorValue <= 107)) {
+          token.bgColor = colorValue;
+        } else if (colorValue < 30) { // style ?
+          token.setStyle(colorValue);
+        }
       }
     }
     // things like  ^[1;38;2;114;150;50;48;2;125;70;22m TEXT ^[0m
