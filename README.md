@@ -9,7 +9,7 @@ import 'package:terminal_color_parser/terminal_color_parser.dart';
 final coloredText = ColorParser('Hello, \x1B[32mworld\x1B[0m!').parse();
 
 print(coloredText);
-// ==> ColoredText("Hello, ", 0:0, , ()), ColoredText("world", 32:0, , ()), ColoredText("!", 0:0, , ())]
+// ==> ColorToken("Hello, ", 0:0, , ()), ColorToken("world", 32:0, , ()), ColorToken("!", 0:0, , ())]
 
 var i = 0;
 for (final token in coloredText) {

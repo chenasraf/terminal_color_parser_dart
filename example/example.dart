@@ -1,10 +1,11 @@
+import 'package:terminal_color_parser/src/color.dart';
 import 'package:terminal_color_parser/terminal_color_parser.dart';
 
 void main(List<String> args) async {
   final coloredText = ColorParser('Hello, \x1B[32mworld\x1B[0m!').parse();
 
   print(coloredText);
-  // ==> ColoredText("Hello, ", 0:0, , ()), ColoredText("world", 32:0, , ()), ColoredText("!", 0:0, , ())]
+  // ==> ColorToken("Hello, ", 0:0, , ()), ColorToken("world", 32:0, , ()), ColorToken("!", 0:0, , ())]
 
   var i = 0;
   for (final token in coloredText) {
@@ -17,14 +18,13 @@ void main(List<String> args) async {
 
   // Construct your own colored text
   final tokens = [
-    ColorToken(text: 'Hello, ', fgColor: 0, bgColor: 0),
+    ColorToken(text: 'Hello, '),
     ColorToken(
       text: 'world',
-      fgColor: 32,
-      bgColor: 0,
+      fgColor: Color(32),
       styles: {TermStyle.underline},
     ),
-    ColorToken(text: '!', fgColor: 0, bgColor: 0),
+    ColorToken(text: '!'),
   ];
 
   i = 0;

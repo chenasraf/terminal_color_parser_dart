@@ -1,3 +1,4 @@
+import 'color.dart';
 import 'interfaces.dart';
 import 'reader.dart';
 import 'consts.dart';
@@ -85,16 +86,10 @@ class ColorParser implements IReader<StringTokenValue> {
           token.setStyle(color);
         } else if (_checkBetween(color, 30, 37) ||
             _checkBetween(color, 90, 97)) {
-          token.fgColor = color;
-          if (_checkBetween(color, 90, 97)) {
-            token.brightFg = true;
-          }
+          token.fgColor = ANSIColor(color);
         } else if (_checkBetween(color, 40, 47) ||
             _checkBetween(color, 100, 107)) {
-          token.bgColor = color;
-          if (_checkBetween(color, 100, 107)) {
-            token.brightBg = true;
-          }
+          token.bgColor = ANSIColor(color);
         } else {
           // Catch arbitrary/unhandled codes
           token.setStyle(color);
@@ -117,13 +112,13 @@ class ColorParser implements IReader<StringTokenValue> {
     if (colors.length < 5) {
       return token;
     }
-    final rgb = '${colors[2]};${colors[3]};${colors[4]}';
+    final r = int.parse(colors[2]);
+    final g = int.parse(colors[3]);
+    final b = int.parse(colors[4]);
     if (colors[0] == '38') {
-      token.rgbFg = true;
-      token.rgbFgColor = rgb;
+      token.fgColor = RGBColor(r, g, b);
     } else if (colors[0] == '48') {
-      token.rgbBg = true;
-      token.rgbBgColor = rgb;
+      token.bgColor = RGBColor(r, g, b);
     }
     return token;
   }
@@ -134,11 +129,9 @@ class ColorParser implements IReader<StringTokenValue> {
     }
     final color = int.parse(colors[2]);
     if (colors[0] == '38') {
-      token.xterm256 = true;
-      token.fgColor = color;
+      token.fgColor = ANSIColor(color);
     } else if (colors[0] == '48') {
-      token.xterm256 = true;
-      token.bgColor = color;
+      token.bgColor = ANSIColor(color);
     }
     return token;
   }

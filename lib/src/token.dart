@@ -1,3 +1,4 @@
+import 'color.dart';
 import 'consts.dart';
 
 /// Represents a string value with color information.
@@ -10,12 +11,10 @@ class ColorToken {
   String text;
 
   /// The foreground color code.
-  int fgColor;
-  String rgbFgColor;
+  Color fgColor;
 
   /// The background color code.
-  int bgColor;
-  String rgbBgColor;
+  Color bgColor;
 
   /// Whether the text is bold.
   bool get bold => styles.contains(TermStyle.bold);
@@ -48,53 +47,33 @@ class ColorToken {
   bool get reset => styles.contains(TermStyle.reset);
 
   /// Whether the text has a foreground color.
-  bool get hasFgColor => fgColor != 0;
+  bool get hasFgColor => fgColor != Color.none;
 
   /// Whether the text has a background color.
-  bool get hasBgColor => bgColor != 0;
-
-  /// Whether the text is an xterm256 color code. Otherwise, it is an ANSI color code.
-  bool xterm256;
-
-  /// Whether the text is using r;g;b for foreground
-  bool rgbFg;
-
-  /// Whether the text is using r;g;b for background
-  bool rgbBg;
-
-  /// Whether the text is using bright foreground colors
-  bool brightFg;
-
-  /// Whether the text is using bright background colors
-  bool brightBg;
+  bool get hasBgColor => bgColor != Color.none;
 
   /// The styles applied to the text.
   late Set<TermStyle> styles;
 
   ColorToken({
     required this.text,
-    required this.fgColor,
-    required this.bgColor,
-    this.xterm256 = false,
-    this.rgbFg = false,
-    this.rgbBg = false,
-    this.rgbFgColor = "",
-    this.rgbBgColor = "",
-    this.brightFg = false,
-    this.brightBg = false,
+    this.fgColor = Color.none,
+    this.bgColor = Color.none,
     Set<TermStyle>? styles,
   }) : styles = styles ?? {};
 
   /// Create an empty token.
-  factory ColorToken.empty() => ColorToken(text: '', fgColor: 0, bgColor: 0);
+  factory ColorToken.empty() => ColorToken(text: '');
 
   /// Create an empty token with a reset style.
-  factory ColorToken.emptyReset() =>
-      ColorToken(text: '', fgColor: 0, bgColor: 0, styles: {TermStyle.reset});
+  factory ColorToken.emptyReset() => ColorToken(
+        text: '',
+        styles: {TermStyle.reset},
+      );
 
   /// Create a token with default color and the given text.
   factory ColorToken.fromText(String text) =>
-      ColorToken(text: text, fgColor: 0, bgColor: 0);
+      ColorToken(text: text, fgColor: Color.none, bgColor: Color.none);
 
   /// Returns true if the text is empty.
   bool get isEmpty => text.isEmpty;
@@ -109,47 +88,40 @@ class ColorToken {
   /// To format the text in other ways, use the properties to get the [fgColor], [bgColor],
   /// and other [styles], and construct it to the desired output format.
   String get formatted {
-    var colorCodes = '';
-    if (xterm256) {
-      colorCodes = '38;5;$fgColor';
-      if (bgColor != 0) {
-        colorCodes += ';48;5;$bgColor';
-      }
-    } else if (rgbFg || rgbBg) {
-      if (rgbFgColor != "") {
-        colorCodes = '38;2;$rgbFgColor';
-      }
-      if (rgbBgColor != "") {
-        colorCodes += ';48;2;$rgbBgColor';
-      }
-    } else {
-      colorCodes = fgColor == 0 ? '' : '$fgColor';
-      if (bgColor != 0) {
-        colorCodes += ';$bgColor';
-      }
-    }
-    // final nonResetStyles = styles.where((x) => x != TermStyle.reset).toList();
-    final styleCodes =
-        styles.isNotEmpty ? styles.map((s) => Consts.codeMap[s]).join(';') : '';
+    final parts = <String>[];
 
-    final tokens = _tokenString(
-        [colorCodes, styleCodes].where((s) => s.isNotEmpty).join(';'));
-    // final reset = this.reset ? _tokenString(Consts.resetByte.toString()) : '';
+    // foreground
+    if (fgColor is RGBColor) {
+      parts.add('38;2;${fgColor.formatted}');
+    } else if (fgColor != Color.none) {
+      parts.add(fgColor.formatted);
+    }
+
+    // background
+    if (bgColor is RGBColor) {
+      parts.add('48;2;${bgColor.formatted}');
+    } else if (bgColor != Color.none) {
+      parts.add(bgColor.formatted);
+    }
+
+    final styleParts =
+        styles.map((s) => Consts.codeMap[s]?.toString()).whereType<String>();
+
+    parts.addAll(styleParts);
+
+    final tokens = _tokenString(parts.where((s) => s.isNotEmpty).join(';'));
 
     return '$tokens$text';
   }
 
   @override
-  String toString() => 'ColoredText(${debugProperties().join(', ')})';
+  String toString() => 'ColorToken(${debugProperties().join(', ')})';
 
   /// Returns a list of debug properties.
   List<String> debugProperties() => [
         'text: "${_debugString(text)}"',
         'fgColor: $fgColor',
         'bgColor: $bgColor',
-        'xterm256: $xterm256',
-        'rgbFG: $rgbFgColor',
-        'rgbBG: $rgbBgColor',
         'styles: ${styles.map((s) => s.name)}',
       ];
 
