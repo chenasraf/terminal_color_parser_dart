@@ -24,7 +24,7 @@ void main(List<String> args) async {
       fgColor: Color.fg(32),
       styles: {TermStyle.underline,TermStyle.reset},
     ),
-    ColorToken(text: '!'),
+    ColorToken(text: '!', styles: {TermStyle.bold}),
   ];
 
   i = 0;
@@ -38,7 +38,7 @@ void main(List<String> args) async {
 }
 
 void dbg(int i, ColorToken token) {
-  print('Token #$i: ${token.formatted}');
+  print('Token #$i: ${token.formatted}\x1B[0m');
   print('  - Text: ${token.text}');
   print('  - Foreground: ${token.fgColor}');
   print('  - Background: ${token.bgColor}');

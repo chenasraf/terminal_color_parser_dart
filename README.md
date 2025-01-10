@@ -8,9 +8,6 @@ import 'package:terminal_color_parser/terminal_color_parser.dart';
 
 final coloredText = ColorParser('Hello, \x1B[32mworld\x1B[0m!').parse();
 
-print(coloredText);
-// ==> ColorToken("Hello, ", 0:0, , ()), ColorToken("world", 32:0, , ()), ColorToken("!", 0:0, , ())]
-
 var i = 0;
 for (final token in coloredText) {
   print('Token #$i: ${token.formatted}');
@@ -29,22 +26,22 @@ You can also re-format the ANSI codes by using the `formatted` property on each 
 
 ```dart
 final tokens = [
-  ColorToken(text: 'Hello, ', fgColor: 0, bgColor: 0),
+  ColorToken(text: 'Hello, '),
   ColorToken(
     text: 'world',
-    fgColor: 32,
-    bgColor: 0,
+    fgColor: ANSIColor.fg(32), // Can also use RGBColor.fg(r, g, b)
+    bgColor: Color.none,
     styles: {StyleByte.underline},
   ),
-  ColorToken(text: '!', fgColor: 0, bgColor: 0),
+  ColorToken(text: '!'),
 ];
 
 var i = 0;
 for (final token in coloredText) {
   print('Token #$i: ${token.formatted}');
   print('  - Text: ${token.text}');
-  print('  - Foreground: ${token.fgColor}');
-  print('  - Background: ${token.bgColor}');
+  print('  - Foreground: ${token.fgColor.formatted}');
+  print('  - Background: ${token.bgColor.formatted}');
   print('  - Bold: ${token.bold}');
   print('  - Italic: ${token.italic}');
   print('  - Underline: ${token.underline}');
