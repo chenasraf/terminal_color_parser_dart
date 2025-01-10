@@ -69,31 +69,40 @@ class ColorParser implements IReader<StringTokenValue> {
   }
 
   ColorToken _parseStyleToken(ColorToken token, List<String> colors) {
+    if (colors.isEmpty) {
+      return token;
+    }
+
     final colorNums = colors.map((n) => int.parse(n)).toList();
+    final first = colorNums.first;
+
+    final isRgb = _checkPair(colorNums, 38, 2) || _checkPair(colorNums, 48, 2);
+    final isXterm256 =
+        _checkPair(colorNums, 38, 5) || _checkPair(colorNums, 48, 5);
+    final isAnsiFg =
+        _checkBetween(first, 30, 37) || _checkBetween(first, 90, 97);
+    final isAnsiBg =
+        _checkBetween(first, 40, 47) || _checkBetween(first, 100, 107);
+
     // Special cases
-    if (_checkPair(colorNums, 38, 2) || _checkPair(colors, 48, 2)) {
+    if (isRgb) {
       // RGB format is 38;2;R;G;B or 48;2;R;G;B
       token = _consumeRgbToken(token, colors);
       colors.removeRange(0, 5);
-    } else if (_checkPair(colorNums, 38, 5) || _checkPair(colorNums, 48, 5)) {
+    } else if (isXterm256) {
       // Xterm256 format is 38;5;N or 48;5;N
       token = _consumeXterm256Token(token, colors);
       colors.removeRange(0, 3);
+    } else if (isAnsiFg) {
+      token.fgColor = ANSIColor.fg(first);
+      colors.removeAt(0);
+    } else if (isAnsiBg) {
+      token.bgColor = ANSIColor.bg(first);
+      colors.removeAt(0);
     } else {
       // Other style codes
       for (var color in colorNums) {
-        if (color < 30) {
-          token.setStyle(color);
-        } else if (_checkBetween(color, 30, 37) ||
-            _checkBetween(color, 90, 97)) {
-          token.fgColor = ANSIColor(color);
-        } else if (_checkBetween(color, 40, 47) ||
-            _checkBetween(color, 100, 107)) {
-          token.bgColor = ANSIColor(color);
-        } else {
-          // Catch arbitrary/unhandled codes
-          token.setStyle(color);
-        }
+        token.setStyle(color);
         colors.removeAt(0);
       }
     }
@@ -116,9 +125,9 @@ class ColorParser implements IReader<StringTokenValue> {
     final g = int.parse(colors[3]);
     final b = int.parse(colors[4]);
     if (colors[0] == '38') {
-      token.fgColor = RGBColor(r, g, b);
+      token.fgColor = RGBColor.fg(r, g, b);
     } else if (colors[0] == '48') {
-      token.bgColor = RGBColor(r, g, b);
+      token.bgColor = RGBColor.bg(r, g, b);
     }
     return token;
   }
@@ -129,9 +138,9 @@ class ColorParser implements IReader<StringTokenValue> {
     }
     final color = int.parse(colors[2]);
     if (colors[0] == '38') {
-      token.fgColor = ANSIColor(color);
+      token.fgColor = ANSIColor.fg(color);
     } else if (colors[0] == '48') {
-      token.bgColor = ANSIColor(color);
+      token.bgColor = ANSIColor.bg(color);
     }
     return token;
   }

@@ -89,29 +89,37 @@ class ColorToken {
   /// and other [styles], and construct it to the desired output format.
   String get formatted {
     final parts = <String>[];
+    var post = '';
 
     // foreground
     if (fgColor is RGBColor) {
       parts.add('38;2;${fgColor.formatted}');
-    } else if (fgColor != Color.none) {
+    } else if (fgColor.isNotNone) {
       parts.add(fgColor.formatted);
     }
 
     // background
     if (bgColor is RGBColor) {
       parts.add('48;2;${bgColor.formatted}');
-    } else if (bgColor != Color.none) {
+    } else if (bgColor.isNotNone) {
       parts.add(bgColor.formatted);
     }
 
-    final styleParts =
-        styles.map((s) => Consts.codeMap[s]?.toString()).whereType<String>();
-
+    // other styles
+    final styleParts = styles
+        .where((s) => s != TermStyle.reset)
+        .map((s) => Consts.codeMap[s]?.toString())
+        .whereType<String>();
     parts.addAll(styleParts);
 
+    if (reset) {
+      post = _tokenString(Consts.codeMap[TermStyle.reset].toString());
+    }
+
+    // collct all tokens
     final tokens = _tokenString(parts.where((s) => s.isNotEmpty).join(';'));
 
-    return '$tokens$text';
+    return '$tokens$text$post';
   }
 
   @override

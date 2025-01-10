@@ -21,8 +21,8 @@ void main(List<String> args) async {
     ColorToken(text: 'Hello, '),
     ColorToken(
       text: 'world',
-      fgColor: Color(32),
-      styles: {TermStyle.underline},
+      fgColor: Color.fg(32),
+      styles: {TermStyle.underline,TermStyle.reset},
     ),
     ColorToken(text: '!'),
   ];
