@@ -102,10 +102,13 @@ class ColorParser implements IReader<StringTokenValue> {
       }
     }
 
+    if (reader.peek() == Consts.esc) {
+      return _consumeEscSequence(token);
+    }
+
     if (colors.isNotEmpty) {
       token = _parseStyleToken(token, colors);
     }
-
     return token;
   }
 
