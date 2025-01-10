@@ -1,3 +1,4 @@
+/// Constants used throughout the package.
 class Consts {
   /// A newline character.
   static const newline = '\n';

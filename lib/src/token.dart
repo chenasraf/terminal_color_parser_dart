@@ -6,7 +6,7 @@ import 'consts.dart';
 ///
 /// Use [ColorToken.formatted] to get the ANSI formatted text, which you can output to the console.
 class ColorToken {
-  /// The raw, uncoded text.
+  /// The text content.
   String text;
 
   /// The foreground color code.
@@ -73,7 +73,7 @@ class ColorToken {
       ColorToken(text: '', fgColor: 0, bgColor: 0, styles: {TermStyle.reset});
 
   /// Create a token with default color and the given text.
-  factory ColorToken.defaultColor(String text) =>
+  factory ColorToken.fromText(String text) =>
       ColorToken(text: text, fgColor: 0, bgColor: 0);
 
   /// Returns true if the text is empty.
@@ -86,8 +86,8 @@ class ColorToken {
   ///
   /// Outputting this value to a terminal will display the text with the correct colors.
   ///
-  /// To format the text in other ways, use the properties to get the [fgColor] and [bgColor],
-  /// and construct it to whatever format you need.
+  /// To format the text in other ways, use the properties to get the [fgColor], [bgColor],
+  /// and other [styles], and construct it to the desired output format.
   String get formatted {
     var colorCodes = '';
     if (xterm256) {
@@ -115,6 +115,7 @@ class ColorToken {
   @override
   String toString() => 'ColoredText(${debugProperties().join(', ')})';
 
+  /// Returns a list of debug properties.
   List<String> debugProperties() => [
         'text: "${_debugString(text)}"',
         'fgColor: $fgColor',
@@ -224,3 +225,4 @@ class StringTokenValue {
   String toString() =>
       token != StringToken.esc ? '${token.name}($raw)' : token.name;
 }
+

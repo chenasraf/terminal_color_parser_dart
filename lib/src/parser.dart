@@ -5,6 +5,8 @@ import 'token.dart';
 
 /// A parser to parse a string with color codes.
 class ColorParser implements IReader<StringTokenValue> {
+  /// Reader for the text.
+  /// Provides method to seek, peek, read and check if it's done.
   final IReader<String> reader;
   final _tokens = <StringTokenValue>[];
 
@@ -17,7 +19,9 @@ class ColorParser implements IReader<StringTokenValue> {
   /// Each token represents a piece of text with color information. You can join all the text
   /// together (without separators) to get the original text, uncolored.
   ///
-  /// To get the colored text, use the [ColorToken.formatted] property of each token.
+  /// To get the colored text, use the [ColorToken.formatted] property of each token, or use the
+  /// [ColorToken.fgColor], [ColorToken.bgColor] and [ColorToken.styles] properties to create
+  /// your desired output format.
   List<ColorToken> parse() {
     final lexed = <ColorToken>[];
     while (!reader.isDone) {
@@ -160,3 +164,4 @@ class ColorParser implements IReader<StringTokenValue> {
   @override
   setPosition(int position) => index = position;
 }
+

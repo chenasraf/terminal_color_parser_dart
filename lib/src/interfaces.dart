@@ -23,3 +23,4 @@ abstract class IReader<T> {
   /// @param originalIndex The index position to set.
   void setPosition(int originalIndex);
 }
+
